@@ -1,1 +1,1 @@
-Server for shop application by @pnmrvvtl
+Server for shop application by @pnmrvvtl with nest.js, prisma.js and postgres
