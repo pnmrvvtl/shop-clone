@@ -21,21 +21,41 @@ export class OrdersService {
     });
   }
 
+  async findOne(id: number) {
+    return this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
+  }
+
   async deleteOrder(orderId: number) {
     return this.prisma.order.delete({ where: { id: orderId } });
   }
 
   async addProductToOrder(orderId: number, productId: number) {
-    return this.prisma.orderItem.create({
-      data: {
-        order_id: orderId,
-        product_id: productId,
-        quantity: 1,
-      },
+    const orderItem = await this.prisma.orderItem.findFirst({
+      where: { order_id: orderId, product_id: productId },
     });
+
+    if (!orderItem) {
+      return this.prisma.orderItem.create({
+        data: {
+          order_id: orderId,
+          product_id: productId,
+          quantity: 1,
+        },
+      });
+    } else {
+      return this.prisma.orderItem.update({
+        where: { id: orderItem.id },
+        data: { quantity: orderItem.quantity - 1 },
+      });
+    }
   }
 
-  async removeProductFromOrder(orderId: number, productId: number) {
+  async decrementProductInOrder(orderId: number, productId: number) {
     const orderItem = await this.prisma.orderItem.findFirst({
       where: { order_id: orderId, product_id: productId },
     });
@@ -49,6 +69,18 @@ export class OrdersService {
         where: { id: orderItem.id },
         data: { quantity: orderItem.quantity - 1 },
       });
+    } else {
+      return this.prisma.orderItem.delete({ where: { id: orderItem.id } });
+    }
+  }
+
+  async removeProductFromOrder(orderId: number, productId: number) {
+    const orderItem = await this.prisma.orderItem.findFirst({
+      where: { order_id: orderId, product_id: productId },
+    });
+
+    if (!orderItem) {
+      throw new NotFoundException('Product not found in the order');
     } else {
       return this.prisma.orderItem.delete({ where: { id: orderItem.id } });
     }
