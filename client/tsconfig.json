@@ -22,6 +22,11 @@
     "lib": [
       "ES2022",
       "dom"
+    ],
+    "plugins": [
+      {
+        "name": "@typescript-eslint/eslint-plugin"
+      }
     ]
   },
   "angularCompilerOptions": {
